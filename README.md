@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfólio · Pedro Vieira
 
-## Getting Started
+Portfólio bilíngue (PT/EN) feito com Next.js 16, TypeScript e Tailwind CSS 4.
 
-First, run the development server:
+## Rodar localmente
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra http://localhost:3000. A raiz redireciona para `/pt` ou `/en` conforme o idioma do navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Onde editar
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| O quê | Arquivo |
+|---|---|
+| Textos em português | `src/content/pt.ts` |
+| Textos em inglês | `src/content/en.ts` |
+| E-mail, links, stack e links dos projetos | `src/content/index.ts` (objeto `profile`) |
+| Layout das seções | `src/app/[lang]/page.tsx` |
+| Cores, fundo e animações | `src/app/globals.css` |
 
-## Learn More
+`en.ts` usa o mesmo tipo de `pt.ts`, então o TypeScript avisa se faltar algum texto traduzido.
 
-To learn more about Next.js, take a look at the following resources:
+## Publicar
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+O jeito mais simples é importar o repositório na [Vercel](https://vercel.com): ela detecta o Next.js sozinha. As páginas `/pt` e `/en` são geradas estaticamente no build.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Pesquisa
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`docs/questionario-portfolio.md` reúne os padrões encontrados em portfólios de desenvolvedores e o questionário usado para montar este site.
