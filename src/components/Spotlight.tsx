@@ -15,6 +15,7 @@ export function Spotlight() {
     if (!el) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (document.documentElement.dataset.lite) return;
 
     const half = el.offsetWidth / 2;
     let frame = 0;

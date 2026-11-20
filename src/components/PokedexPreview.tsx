@@ -21,6 +21,7 @@ export function PokedexPreview() {
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (document.documentElement.dataset.lite) return;
     const id = setInterval(() => setIndex((i) => (i + 1) % POKEMON.length), 2600);
     return () => clearInterval(id);
   }, []);

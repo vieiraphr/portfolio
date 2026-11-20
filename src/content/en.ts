@@ -65,6 +65,10 @@ export const en: Dict = {
         title: "Guitar",
         hint: "drag across the strings",
         loading: "tuning the guitar",
+        fallback: {
+          noWebgl: "2D mode: this browser has no hardware acceleration (WebGL)",
+          failed: "2D mode: the 3D guitar didn't load",
+        },
         label: "Mini guitar: drag your finger or mouse across the strings, or use keys 1 to 6",
         text: "My acoustic guitar is with me every day. A hard chord is like a stubborn bug: practice it and it gives in.",
       },

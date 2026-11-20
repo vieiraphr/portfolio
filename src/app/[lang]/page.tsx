@@ -308,7 +308,7 @@ function Personal({ dict }: { dict: Dict }) {
       title: p.guitar.title,
       hint: p.guitar.hint,
       text: p.guitar.text,
-      widget: <MiniGuitar3D label={p.guitar.label} loading={p.guitar.loading} />,
+      widget: <MiniGuitar3D label={p.guitar.label} loading={p.guitar.loading} notes={p.guitar.fallback} />,
     },
     {
       key: "bjj",

@@ -454,3 +454,32 @@ body {
 .guitar-glow {
   background: radial-gradient(ellipse 60% 70% at 55% 55%, rgb(124 58 237 / 0.28), transparent 70%);
 }
+
+/* ---------- Modo leve ----------
+   Ativado no <head> (layout.tsx) quando o navegador está sem aceleração de vídeo (GPU)
+   ou pede menos movimento. Sem GPU tudo é desenhado pelo processador, então os efeitos
+   abaixo saem para o site continuar fluido. */
+[data-lite] .blob,
+[data-lite] .spotlight {
+  display: none;
+}
+[data-lite] .bg-grid {
+  mask-image: none;
+  opacity: 0.4;
+}
+[data-lite] .hero-in,
+[data-lite] [data-reveal],
+[data-lite] .float,
+[data-lite] .gi-idle,
+[data-lite] .pulse-dot::after,
+[data-lite] .pulse-ring::after,
+[data-lite] .caret {
+  animation: none !important;
+}
+[data-lite] .portrait,
+[data-lite] .card:hover {
+  box-shadow: none;
+}
+[data-lite] .card {
+  transition: none;
+}

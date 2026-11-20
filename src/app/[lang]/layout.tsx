@@ -48,6 +48,24 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * Roda antes da primeira pintura. Testa se o navegador tem WebGL 2 com aceleração de vídeo (GPU).
+ * Sem GPU, o navegador desenha tudo no processador e os efeitos visuais ficam lentos; nesse caso
+ * marca o <html> com data-lite="1" e o site desliga os efeitos caros. data-webgl="0" faz o violão
+ * ir direto para a versão 2D, com o motivo escrito.
+ */
+const DETECT_GPU = `(function(){try{
+var d=document.documentElement,lite=false;
+var c=document.createElement("canvas"),gl=c.getContext("webgl2");
+if(!gl){d.setAttribute("data-webgl","0");lite=true;}
+else{var e=gl.getExtension("WEBGL_debug_renderer_info");
+var r=e?String(gl.getParameter(e.UNMASKED_RENDERER_WEBGL)):"";
+if(/swiftshader|llvmpipe|softpipe|software|basic render/i.test(r)){d.setAttribute("data-webgl","soft");lite=true;}
+var x=gl.getExtension("WEBGL_lose_context");if(x)x.loseContext();}
+if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)lite=true;
+if(lite)d.setAttribute("data-lite","1");
+}catch(_){}})();`;
+
 export default async function RootLayout({
   children,
   params,
@@ -59,7 +77,12 @@ export default async function RootLayout({
     <html
       lang={lang === "pt" ? "pt-BR" : "en"}
       className={`${grotesk.variable} ${mono.variable} antialiased`}
+      // o script abaixo adiciona data-* no <html> antes do React carregar
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: DETECT_GPU }} />
+      </head>
       <body>
         <SmoothScroll />
         {children}
