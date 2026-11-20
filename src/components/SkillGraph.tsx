@@ -131,6 +131,7 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
       });
     let photoBottom = 80;
     let anchored = false; // foto alinhada ao nome (desktop)
+    let stacked = false; // nome em cima do grafo (celular): foto no topo, habilidades embaixo
     const center = nodes[index.center];
 
     const resize = () => {
@@ -158,28 +159,49 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
       center.x = width / 2;
       center.y = height / 2;
       anchored = false;
+      stacked = false;
       const target = alignTo ? document.querySelector(alignTo) : null;
-      if (target) {
-        const t = target.getBoundingClientRect();
-        const f = wrap.getBoundingClientRect();
+      if (target instanceof HTMLElement) {
+        // posição de layout (offsetTop/Left), que ignora as animações de entrada com transform
+        const pos = (el: HTMLElement) => {
+          let x = 0;
+          let y = 0;
+          for (let e: HTMLElement | null = el; e; e = e.offsetParent as HTMLElement | null) {
+            x += e.offsetLeft;
+            y += e.offsetTop;
+          }
+          return { x, y };
+        };
+        const tp = pos(target);
+        const fp = pos(wrap);
+        const t = { top: tp.y, bottom: tp.y + target.offsetHeight, right: tp.x + target.offsetWidth, height: target.offsetHeight };
+        const f = { top: fp.y, left: fp.x };
         if (t.right <= f.left + 1) {
           // lado a lado: a foto fica na mesma altura do centro do nome
           const y = t.top + t.height / 2 - f.top;
           center.y = Math.max(centerEl.offsetHeight / 2 + 4, Math.min(height - photoBottom - 40, y));
           anchored = true;
+        } else if (t.bottom <= f.top + 1) {
+          // empilhado: a foto fica em destaque logo abaixo do nome
+          center.y = centerEl.offsetHeight / 2 + 8;
+          stacked = true;
         }
       }
       centerEl.style.top = `${center.y}px`;
     };
 
     const placeInitial = () => {
-      const angles: Record<Group, number> = anchored
-        ? { hard: Math.PI - 0.2, ai: Math.PI / 2, soft: 0.2 }
-        : { hard: -Math.PI / 2 - 0.5, ai: Math.PI / 2 + 0.9, soft: 0.25 };
+      const angles: Record<Group, number> = stacked
+        ? { hard: Math.PI - 0.9, ai: Math.PI / 2, soft: 0.9 }
+        : anchored
+          ? { hard: Math.PI - 0.2, ai: Math.PI / 2, soft: 0.2 }
+          : { hard: -Math.PI / 2 - 0.5, ai: Math.PI / 2 + 0.9, soft: 0.25 };
       (Object.keys(lists) as Group[]).forEach((g) => {
         const hub = nodes[index[`hub-${g}`]];
         hub.x = center.x + Math.cos(angles[g]) * width * (anchored ? 0.36 : 0.3);
-        hub.y = (anchored ? center.y + height * 0.12 : center.y) + Math.sin(angles[g]) * height * (anchored ? 0.42 : 0.3);
+        hub.y = stacked
+          ? center.y + photoBottom + (height - center.y - photoBottom) * 0.3 + Math.sin(angles[g]) * height * 0.15
+          : (anchored ? center.y + height * 0.12 : center.y) + Math.sin(angles[g]) * height * (anchored ? 0.42 : 0.3);
         lists[g].forEach((_, i) => {
           const n = nodes[index[`${g}-${i}`]];
           const a = angles[g] + (i / lists[g].length - 0.5) * 2.4;
@@ -262,8 +284,8 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
           continue;
         }
         node.vx += (width / 2 - node.x) * (anchored ? 0.0006 : 0.0012);
-        const gy = anchored ? center.y + height * 0.22 : height / 2;
-        node.vy += (gy - node.y) * (small ? 0.0004 : anchored ? 0.0005 : 0.0012);
+        const gy = stacked ? (center.y + photoBottom + height) / 2 : anchored ? center.y + height * 0.22 : height / 2;
+        node.vy += (gy - node.y) * (stacked ? 0.0008 : small ? 0.0004 : anchored ? 0.0005 : 0.0012);
         if (drift) {
           node.vx += Math.cos(t * 0.6 + node.phase) * 0.012;
           node.vy += Math.sin(t * 0.5 + node.phase) * 0.012;

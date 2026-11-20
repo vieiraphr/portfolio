@@ -116,8 +116,9 @@ function Hero({ dict }: { dict: Dict }) {
   const h = dict.hero;
   return (
     <section id="topo" className="relative mx-auto max-w-6xl px-4 pb-4 pt-28 sm:pt-32">
-      <div className="grid items-start gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-6">
-        <div>
+      {/* celular: nome → foto/grafo → texto; desktop: nome e texto à esquerda, grafo à direita */}
+      <div className="grid items-start gap-x-6 gap-y-2 lg:grid-cols-[1fr_1.15fr] lg:grid-rows-[auto_1fr] lg:gap-y-0">
+        <div className="lg:col-start-1 lg:row-start-1">
           <h1 id="hero-name" className="hero-name font-bold uppercase leading-[0.85] tracking-[-0.04em]">
             <span className="hero-in block" style={{ animationDelay: "80ms" }}>
               Pedro
@@ -131,32 +132,9 @@ function Hero({ dict }: { dict: Dict }) {
             {"// "}
             {h.role}
           </p>
-
-          <div className="hero-in" style={{ animationDelay: "320ms" }}>
-            <p className="mt-8 text-balance text-3xl font-medium leading-tight sm:text-4xl">{h.headline}</p>
-            <p className="mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted">{h.sub}</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="#projetos"
-                className="group inline-flex items-center gap-2 rounded-full bg-accent-strong px-6 py-3 font-medium text-white transition hover:shadow-[0_0_40px_-5px] hover:shadow-accent/60"
-              >
-                {h.ctaPrimary}
-                <ArrowDown className="size-4 transition group-hover:translate-y-0.5" />
-              </a>
-              <a
-                href="#contato"
-                className="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-medium transition hover:border-fg/40"
-              >
-                {h.ctaSecondary}
-              </a>
-            </div>
-            <div className="mt-8 flex items-center gap-4 text-muted">
-              <SocialLinks />
-            </div>
-          </div>
         </div>
 
-        <div className="hero-in lg:-mt-8" style={{ animationDelay: "220ms" }}>
+        <div className="hero-in lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:-mt-8" style={{ animationDelay: "220ms" }}>
           <SkillGraph
             hubs={h.graph.hubs}
             hard={h.graph.hard}
@@ -166,13 +144,13 @@ function Hero({ dict }: { dict: Dict }) {
             alignTo="#hero-name"
           >
             <div className="relative">
-              <div className="portrait relative size-24 overflow-hidden rounded-[1.25rem] sm:size-44 sm:rounded-[2rem] lg:size-56 lg:rounded-[2.25rem]">
+              <div className="portrait relative size-40 overflow-hidden rounded-[1.75rem] sm:size-44 sm:rounded-[2rem] lg:size-56 lg:rounded-[2.25rem]">
                 <Image
                   src="/pedro.webp"
                   alt={h.photoAlt}
                   fill
                   priority
-                  sizes="(min-width: 1024px) 224px, (min-width: 640px) 176px, 96px"
+                  sizes="(min-width: 1024px) 224px, 176px"
                   className="object-cover"
                 />
               </div>
@@ -182,8 +160,30 @@ function Hero({ dict }: { dict: Dict }) {
             </div>
           </SkillGraph>
         </div>
-      </div>
 
+        <div className="hero-in lg:col-start-1 lg:row-start-2" style={{ animationDelay: "320ms" }}>
+          <p className="mt-8 text-balance text-3xl font-medium leading-tight sm:text-4xl">{h.headline}</p>
+          <p className="mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted">{h.sub}</p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a
+              href="#projetos"
+              className="group inline-flex items-center gap-2 rounded-full bg-accent-strong px-6 py-3 font-medium text-white transition hover:shadow-[0_0_40px_-5px] hover:shadow-accent/60"
+            >
+              {h.ctaPrimary}
+              <ArrowDown className="size-4 transition group-hover:translate-y-0.5" />
+            </a>
+            <a
+              href="#contato"
+              className="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-medium transition hover:border-fg/40"
+            >
+              {h.ctaSecondary}
+            </a>
+          </div>
+          <div className="mt-8 flex items-center gap-4 text-muted">
+            <SocialLinks />
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
