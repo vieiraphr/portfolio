@@ -31,7 +31,7 @@ export function createGuitarScene(
   /* ---------------- renderer, cena, câmera, luz ---------------- */
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.95;
@@ -356,10 +356,12 @@ export function createGuitarScene(
   let prevNdc: T.Vector2 | null = null;
   const tilt = { x: 0, y: 0 };
   const tiltTarget = { x: 0, y: 0 };
+  let hovering = false;
 
   const pluck = (i: number) => {
     onPluck(i);
     strings[i].amp = 1;
+    wake();
   };
 
   const toNdc = (event: PointerEvent, out: T.Vector2) => {
@@ -391,8 +393,10 @@ export function createGuitarScene(
 
   const onMove = (event: PointerEvent) => {
     const p = toNdc(event, ndc.clone());
+    hovering = true;
     tiltTarget.y = p.x * 0.28;
     tiltTarget.x = -p.y * 0.2;
+    wake();
     if (!pressed || !prevNdc) return;
     // amostra o caminho entre os dois eventos para não pular cordas
     const steps = 10;
@@ -414,8 +418,10 @@ export function createGuitarScene(
   };
 
   const onLeave = () => {
+    hovering = false;
     tiltTarget.x = 0;
     tiltTarget.y = 0;
+    wake(); // anima a volta para a posição inicial e então para
   };
 
   canvas.addEventListener("pointerdown", onDown);
@@ -425,6 +431,8 @@ export function createGuitarScene(
   canvas.addEventListener("pointerleave", onLeave);
 
   /* ---------------- loop ---------------- */
+  // Desenha só quando algo muda: mouse em cima (inclinação), cordas vibrando ou a
+  // inclinação voltando ao lugar. Parado, o violão fica numa imagem estática e não gasta nada.
 
   const timer = new THREE.Timer();
   let raf = 0;
@@ -438,9 +446,8 @@ export function createGuitarScene(
 
     tilt.x += (tiltTarget.x - tilt.x) * Math.min(1, dt * 6);
     tilt.y += (tiltTarget.y - tilt.y) * Math.min(1, dt * 6);
-    const sway = reducedMotion ? 0 : Math.sin(t * 0.7) * 0.035;
+    const sway = reducedMotion || !hovering ? 0 : Math.sin(t * 0.7) * 0.035;
     root.rotation.set(BASE_ROT.x + tilt.x, BASE_ROT.y + tilt.y + sway, BASE_ROT.z);
-    root.position.y = reducedMotion ? 0 : Math.sin(t * 1.2) * 0.06;
 
     strings.forEach((s, i) => {
       if (s.amp < 0.001) {
@@ -458,6 +465,10 @@ export function createGuitarScene(
     });
 
     renderer.render(scene, camera);
+
+    const vibrating = strings.some((s) => s.amp > 0);
+    const easing = Math.abs(tiltTarget.x - tilt.x) + Math.abs(tiltTarget.y - tilt.y) > 0.0005;
+    if (!hovering && !pressed && !vibrating && !easing) stop();
   };
 
   const start = () => {
@@ -470,9 +481,13 @@ export function createGuitarScene(
     raf = 0;
   };
 
+  function wake() {
+    if (visible) start();
+  }
+
   const io = new IntersectionObserver(([entry]) => {
     visible = entry.isIntersecting;
-    if (visible) start();
+    if (visible) renderer.render(scene, camera);
     else stop();
   });
   io.observe(container);

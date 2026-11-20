@@ -61,7 +61,7 @@ function Nav({ dict, lang }: { dict: Dict; lang: Locale }) {
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 px-4 pt-4">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-full border border-line bg-bg/70 py-2 pl-5 pr-2 backdrop-blur-xl">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-full border border-line bg-bg/90 py-2 pl-5 pr-2">
         <a href="#topo" className="font-mono text-sm font-bold tracking-tight">
           <span className="text-accent">&lt;</span>PV<span className="text-accent"> /&gt;</span>
         </a>
@@ -397,7 +397,7 @@ function Projects({ dict, lang }: { dict: Dict; lang: Locale }) {
       {/* Destaque: Pokédex */}
       <article data-reveal className="card group/card grid overflow-hidden rounded-3xl lg:grid-cols-2">
         <div className="pokedex-stage relative flex items-center justify-center overflow-hidden p-10 sm:p-14">
-          <span className="absolute left-5 top-5 rounded-full bg-bg/70 px-3 py-1 font-mono text-xs text-accent backdrop-blur">
+          <span className="absolute left-5 top-5 rounded-full bg-bg/85 px-3 py-1 font-mono text-xs text-accent">
             ★ {p.featured}
           </span>
           <PokedexPreview />

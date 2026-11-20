@@ -26,7 +26,6 @@ type Node = {
   vx: number;
   vy: number;
   r: number;
-  phase: number;
   dragging: boolean;
   /** largura do rótulo em px (para não cortar nem passar por baixo da foto) */
   lw: number;
@@ -78,7 +77,6 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const font = getComputedStyle(document.body).fontFamily;
 
     /* ---------- montagem dos nós ---------- */
@@ -90,7 +88,7 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
 
     const add = (id: string, text: string, group: Node["group"], hub: boolean, r: number) => {
       index[id] = nodes.length;
-      nodes.push({ id, label: text, group, hub, x: 0, y: 0, vx: 0, vy: 0, r, phase: Math.random() * Math.PI * 2, dragging: false, lw: 0 });
+      nodes.push({ id, label: text, group, hub, x: 0, y: 0, vx: 0, vy: 0, r, dragging: false, lw: 0 });
     };
 
     add("center", "", "center", true, 0);
@@ -217,8 +215,9 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
     placeInitial();
 
     /* ---------- física ---------- */
-    let t = 0;
-    const step = (dt: number, drift: boolean) => {
+    /** Um passo da simulação. Devolve a energia (soma das velocidades²) para saber se já assentou. */
+    const step = (dt: number) => {
+      let energy = 0;
       const n = nodes.length;
       // repulsão
       for (let i = 1; i < n; i++) {
@@ -286,16 +285,14 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
         node.vx += (width / 2 - node.x) * (anchored ? 0.0006 : 0.0012);
         const gy = stacked ? (center.y + photoBottom + height) / 2 : anchored ? center.y + height * 0.22 : height / 2;
         node.vy += (gy - node.y) * (stacked ? 0.0008 : small ? 0.0004 : anchored ? 0.0005 : 0.0012);
-        if (drift) {
-          node.vx += Math.cos(t * 0.6 + node.phase) * 0.012;
-          node.vy += Math.sin(t * 0.5 + node.phase) * 0.012;
-        }
         node.vx *= 0.82;
         node.vy *= 0.82;
         node.x += node.vx * dt;
         node.y += node.vy * dt;
         keepClear(node);
+        energy += node.vx * node.vx + node.vy * node.vy;
       }
+      return energy;
     };
 
     /** Mantém nó + rótulo fora da foto e dentro da área (sem cortar texto). */
@@ -320,7 +317,7 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
       node.y = Math.max(top + 4, Math.min(height - bottom, node.y));
     };
 
-    for (let i = 0; i < 400; i++) step(1, false); // já começa assentado
+    for (let i = 0; i < 400; i++) step(1); // já começa assentado
 
     /* ---------- desenho ---------- */
     let hovered: number | null = null;
@@ -358,15 +355,19 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
         const color = COLORS[node.group];
         const on = lit(i);
         ctx.globalAlpha = on ? 1 : 0.18;
+        // brilho: um círculo maior e transparente (shadowBlur era caro demais a cada quadro)
         if (node.hub || i === hovered) {
-          ctx.shadowColor = color;
-          ctx.shadowBlur = 14;
+          ctx.globalAlpha = on ? 0.22 : 0.05;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.r + 7, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.globalAlpha = on ? 1 : 0.18;
         }
         ctx.beginPath();
         ctx.arc(node.x, node.y, i === hovered ? node.r + 2 : node.r, 0, Math.PI * 2);
         ctx.fillStyle = node.hub ? color : i === hovered ? color : hovered === null ? "#8b84a0" : color;
         ctx.fill();
-        ctx.shadowBlur = 0;
 
         ctx.font = fontFor(node);
         ctx.textAlign = "center";
@@ -378,17 +379,22 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
     };
 
     /* ---------- loop ---------- */
+    // Só anima enquanto há movimento (arraste, redimensionamento). Depois de assentar,
+    // o loop "dorme" e o canvas só é redesenhado quando o mouse muda o destaque.
     let raf = 0;
     let last = performance.now();
+    let calm = 0;
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
       const dt = Math.min((now - last) / 16.7, 2);
       last = now;
-      t += dt / 60;
-      step(dt, !reduced);
+      const energy = step(dt);
       draw();
+      calm = !dragging && energy < 0.05 ? calm + 1 : 0;
+      if (calm > 20) stop();
     };
     const start = () => {
+      calm = 0;
       if (raf) return;
       last = performance.now();
       raf = requestAnimationFrame(loop);
@@ -404,12 +410,14 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
     const ro = new ResizeObserver(() => {
       resize();
       draw();
+      start();
     });
     ro.observe(wrap);
     // remede depois que as fontes e a animação de entrada terminam
     const remeasure = () => {
       resize();
       draw();
+      start();
     };
     document.fonts?.ready.then(remeasure);
     const settle = setTimeout(remeasure, 1300);
@@ -456,6 +464,7 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
         dragging = nodes[i];
         dragging.dragging = true;
         canvas.style.cursor = "grabbing";
+        start();
         try {
           canvas.setPointerCapture(e.pointerId);
         } catch {
@@ -466,6 +475,7 @@ export function SkillGraph({ hubs, hard, ai, soft, label, children, alignTo }: P
     };
     const onUp = () => {
       if (dragging) dragging.dragging = false;
+      if (dragging) start(); // deixa o grafo se reacomodar depois de soltar
       dragging = null;
       canvas.style.cursor = hovered !== null ? "grab" : "default";
     };

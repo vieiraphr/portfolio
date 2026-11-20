@@ -57,51 +57,37 @@ body {
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 100%);
 }
 
+/* manchas de cor: gradientes estáticos (sem filter: blur, que era recalculado a cada quadro) */
 .blob {
   position: absolute;
-  width: 42rem;
-  height: 42rem;
+  width: 64rem;
+  height: 64rem;
   border-radius: 9999px;
-  filter: blur(120px);
-  opacity: 0.22;
-  animation: drift 22s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 .blob-a {
-  background: #7c3aed;
-  top: -14rem;
-  right: -10rem;
+  background: radial-gradient(closest-side, rgb(124 58 237 / 0.26), transparent);
+  top: -26rem;
+  right: -22rem;
 }
 .blob-b {
-  background: #5b21b6;
-  top: 30%;
-  left: -18rem;
-  opacity: 0.18;
-  animation-duration: 28s;
-  animation-direction: alternate-reverse;
-}
-@keyframes drift {
-  to {
-    transform: translate3d(-8rem, 6rem, 0) scale(1.15);
-  }
+  background: radial-gradient(closest-side, rgb(91 33 182 / 0.22), transparent);
+  top: 22%;
+  left: -32rem;
 }
 
-.noise {
-  position: absolute;
-  inset: 0;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
+/* luz do mouse: um círculo de tamanho fixo movido com transform (não repinta a tela) */
 .spotlight {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 0;
+  width: 1120px;
+  height: 1120px;
+  border-radius: 9999px;
+  background: radial-gradient(closest-side, rgb(168 85 247 / 0.08), transparent);
   opacity: 0;
   transition: opacity 0.6s;
-  background: radial-gradient(
-    560px circle at var(--mx, 50%) var(--my, 20%),
-    rgb(168 85 247 / 0.07),
-    transparent 60%
-  );
+  will-change: transform;
 }
 
 /* ---------- Hero ---------- */
@@ -138,21 +124,23 @@ body {
   background: var(--color-term);
   --pulse: 0 255 65;
   box-shadow: 0 0 8px rgb(0 255 65 / 0.8);
-  animation: pulse 1.8s infinite;
 }
 .pulse-ring {
   --pulse: 168 85 247;
-  animation: pulse 1.8s infinite;
+}
+.pulse-dot::after,
+.pulse-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(var(--pulse) / 0.6);
+  animation: pulse 1.8s ease-out infinite;
 }
 @keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgb(var(--pulse) / 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgb(var(--pulse) / 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgb(var(--pulse) / 0);
+  to {
+    transform: scale(3);
+    opacity: 0;
   }
 }
 
