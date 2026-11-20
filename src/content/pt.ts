@@ -64,8 +64,8 @@ export const pt = {
         hint: "arraste pelas cordas",
         loading: "afinando o violão",
         fallback: {
-          noWebgl: "Modo 2D: este navegador está sem aceleração de vídeo (WebGL)",
-          failed: "Modo 2D: o violão 3D não carregou",
+          noWebgl: "Este navegador está sem aceleração de vídeo (WebGL), então o violão aparece em foto",
+          failed: "O violão 3D não carregou, então ele aparece em foto",
         },
         label: "Mini violão: arraste o dedo ou o mouse pelas cordas, ou use as teclas 1 a 6",
         text: "O violão me acompanha no dia a dia. Acorde difícil é igual bug teimoso: com repetição, sai.",

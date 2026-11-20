@@ -341,7 +341,7 @@ export function createGuitarScene(
     const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     const distV = size.y / 2 / tanV;
     const distH = size.x / 2 / (tanV * camera.aspect);
-    camera.position.set(0, 0, Math.max(distV, distH) * 0.98);
+    camera.position.set(0, 0, Math.max(distV, distH) * 1.12);
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
   };

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { pluck as playPluck } from "./audio";
 import type { GuitarScene } from "./guitarScene";
-import { MiniGuitar } from "./MiniGuitar";
+import { MiniGuitarImage } from "./MiniGuitarImage";
 
 const FREQS = [82.41, 110.0, 146.83, 196.0, 246.94, 329.63];
 const RELOAD_FLAG = "pv-guitar-reloaded";
@@ -16,7 +16,8 @@ const isStaleChunk = (error: unknown) =>
 
 /**
  * Violão 3D (three.js). O three só é baixado quando o card chega perto da tela.
- * Sem WebGL, ou se o 3D falhar, mostra o violão 2D com o motivo escrito embaixo.
+ * Sem WebGL, ou se o 3D falhar, mostra uma foto do próprio violão 3D com as cordas tocáveis
+ * (o motivo fica no title e no console).
  */
 export function MiniGuitar3D({ label, loading, notes }: { label: string; loading: string; notes: Notes }) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -35,17 +36,20 @@ export function MiniGuitar3D({ label, loading, notes }: { label: string; loading
       setStatus("fallback");
     };
 
+    // sem WebGL 2 (detectado no <head>, em layout.tsx) não há nada para baixar: mostra a foto na hora
+    if (document.documentElement.dataset.webgl === "0") {
+      console.warn("Violão 3D: este navegador não oferece WebGL 2. Usando a foto do violão.");
+      const t = setTimeout(() => fallBack(notes.noWebgl), 0);
+      return () => {
+        cancelled = true;
+        clearTimeout(t);
+      };
+    }
+
     const io = new IntersectionObserver(
       async ([entry]) => {
         if (!entry.isIntersecting) return;
         io.disconnect();
-
-        // detectado no <head> (layout.tsx): sem WebGL 2 não adianta baixar o three.js
-        if (document.documentElement.dataset.webgl === "0") {
-          console.warn("Violão 3D: este navegador não oferece WebGL 2. Usando a versão 2D.");
-          fallBack(notes.noWebgl);
-          return;
-        }
 
         try {
           const [THREE, { RoomEnvironment }, { createGuitarScene }] = await Promise.all([
@@ -62,7 +66,7 @@ export function MiniGuitar3D({ label, loading, notes }: { label: string; loading
             /* sem sessionStorage: tudo bem */
           }
         } catch (error) {
-          console.warn("Violão 3D indisponível, usando a versão 2D.", error);
+          console.warn("Violão 3D indisponível, usando a foto do violão.", error);
           // página aberta antes de um deploy: recarrega uma única vez para pegar a versão nova
           if (isStaleChunk(error)) {
             try {
@@ -102,16 +106,7 @@ export function MiniGuitar3D({ label, loading, notes }: { label: string; loading
     }
   };
 
-  if (status === "fallback") {
-    return (
-      <div className="relative h-full">
-        <MiniGuitar label={label} />
-        <p className="absolute inset-x-2 bottom-0 truncate text-center font-mono text-[10px] text-muted" title={reason}>
-          {reason}
-        </p>
-      </div>
-    );
-  }
+  if (status === "fallback") return <MiniGuitarImage label={label} title={reason} />;
 
   return (
     <div
